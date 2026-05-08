@@ -1,0 +1,19 @@
+# macOS
+# General macOS Finder and metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+
+# Thumbnails and index
+._* 
+
+# Ensure DS_Store in any folder is ignored
+**/.DS_Store
+
+# End of macOS ignores
