@@ -105,11 +105,14 @@ Use $notebooklm to list my notebooks.
 Resultado esperado con la biblioteca vacia:
 
 ```text
-No notebooks registered.
+No notebooks registered yet.
 ```
 
-Codex deberia pedir una URL de NotebookLM o una accion para registrar un
-notebook.
+Ese mensaje no debe ser el final del flujo. Codex debe continuar de forma
+proactiva: si ya tiene una URL de NotebookLM, debe registrar ese notebook; si no
+la tiene y puede controlar Chrome, debe abrir `https://notebooklm.google.com`
+para que el usuario elija un notebook; si no puede controlar el navegador, debe
+pedir una URL de NotebookLM.
 
 ## Estructura
 
@@ -195,8 +198,9 @@ Que controles SOC2 aparecen y que evidencias piden?
 ```
 
 Codex compara el tema contra `topics`, `description` y `name` en
-`data/library.json`. Si hay varias coincidencias plausibles, debe preguntar cual
-usar.
+`data/library.json`. Si hay una coincidencia, la usa; si hay varias, pregunta
+cual usar; si no hay coincidencias, lista candidatos existentes o inicia el
+flujo de registro cuando la biblioteca esta vacia.
 
 ### Usar notebook activo
 
@@ -358,8 +362,8 @@ Detalles reproducibles:
 - Chats largos pueden hacer lentos los snapshots DOM completos; la skill prefiere
   extraccion acotada o pestanas frescas.
 - La calidad depende de las fuentes subidas al notebook.
-- Si NotebookLM no contiene una respuesta, Codex debe reportarlo en vez de
-  completar con conocimiento externo.
+- Si NotebookLM no contiene una respuesta tras 1-2 follow-ups concretos, Codex
+  debe reportarlo en vez de completar con conocimiento externo.
 
 ## Desarrollo
 

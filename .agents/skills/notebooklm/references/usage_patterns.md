@@ -78,7 +78,37 @@ Library entry shape:
 }
 ```
 
-## 4) Active notebook query
+## 4) Empty library listing
+
+User:
+
+```text
+Use $notebooklm to list my notebooks.
+```
+
+Flow:
+
+1. Run or inspect the local library list.
+2. If no notebooks are registered, do not stop at `No notebooks registered.`
+3. If the prompt includes a NotebookLM URL, open it and register that notebook.
+4. Otherwise open `https://notebooklm.google.com` when browser control is
+   available and ask the user to choose or open a notebook to register.
+5. If browser control is unavailable, ask for a NotebookLM URL.
+
+User with URL:
+
+```text
+Use $notebooklm to list my notebooks. If empty, add this one:
+https://notebooklm.google.com/notebook/ABC
+```
+
+Flow:
+
+1. Detect that the library is empty.
+2. Open the URL, ask NotebookLM for grounded metadata, save the entry, then list
+   the updated library.
+
+## 5) Active notebook query
 
 User:
 
@@ -90,10 +120,56 @@ Flow:
 
 1. Read `active_notebook_id`.
 2. Resolve it to a notebook entry.
-3. If missing or invalid, report the configuration problem.
-4. Query the active notebook.
+3. If valid, query the active notebook.
+4. If missing or invalid, repair before querying:
+   - one notebook exists: use it and offer to set it active;
+   - multiple notebooks exist: list them and ask which should be active;
+   - no notebooks exist: clear the invalid active value and start the empty
+     library listing flow.
 
-## 5) Comparative synthesis
+## 6) Topic with no matching notebook
+
+User:
+
+```text
+Busca en mis notas de compliance qué dice sobre SOC2.
+```
+
+Flow when no notebook matches:
+
+1. If the library has notebooks, list available candidates and ask whether to
+   choose one or register a new compliance notebook.
+2. If the library is empty, start the empty library listing flow.
+3. Do not answer from model knowledge unless the user explicitly stops requiring
+   NotebookLM grounding.
+
+## 7) Weak NotebookLM response
+
+User:
+
+```text
+Usa mi notebook activo y dime qué riesgos clínicos aparecen. Incluye citas.
+```
+
+Flow:
+
+1. Ask the initial self-contained question.
+2. If the response is empty, weak, or uncited, ask 1-2 targeted follow-ups, for
+   example:
+
+```text
+Which source passages mention clinical risks? Cite the source numbers.
+```
+
+```text
+If the sources do not discuss clinical risks, say that explicitly and cite the
+closest relevant passages.
+```
+
+3. If NotebookLM still cannot support the answer, report insufficient source
+   coverage instead of filling gaps externally.
+
+## 8) Comparative synthesis
 
 User:
 
@@ -122,7 +198,7 @@ Synthesis:
 - ...
 ```
 
-## 6) Chrome path diagnostic
+## 9) Chrome path diagnostic
 
 User:
 
