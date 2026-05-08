@@ -17,3 +17,49 @@ Icon?
 **/.DS_Store
 
 # End of macOS ignores
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+ENV/
+env/
+env.bak/
+.env
+.env.local
+pip-wheel-metadata/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+
+# Coverage
+.coverage
+.pytest_cache/
+
+# Logs
+*.log
+
+# Keys and secrets
+*.pem
+*.key
+*.crt
