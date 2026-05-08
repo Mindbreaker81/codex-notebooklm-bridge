@@ -1,6 +1,6 @@
 # Codex NotebookLM Bridge Skill
 
-Version: `0.2.0`
+Version: `0.3.0`
 
 Skill local para consultar Google NotebookLM desde Codex usando la sesion
 autenticada de Chrome del usuario. El objetivo es obtener respuestas grounded en
@@ -16,6 +16,8 @@ interfaz.
 - Extraer titulo, fuentes, respuesta y citas numeradas.
 - Registrar notebooks en `.agents/skills/notebooklm/data/library.json`.
 - Seleccionar notebooks por tema o por notebook activo.
+- Iniciar registro o reparacion cuando la biblioteca esta vacia, no hay match
+  por tema o el notebook activo es invalido.
 - Diagnosticar si se uso Chrome plugin o Computer Use fallback.
 
 ## Que no hace
