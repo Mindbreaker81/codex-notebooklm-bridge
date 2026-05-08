@@ -202,8 +202,8 @@ When the user asks to list notebooks:
 2. If notebooks exist, list each notebook with id, name, topics, URL, and active
    marker. If only one notebook exists and the user also asked a question, use it
    directly.
-3. If the library is empty, say that no notebooks are registered yet, then take
-   the next useful registration step:
+3. If the library is empty, report the canonical empty-library message
+   `No notebooks registered.`, then take the next useful registration step:
    - If the user provided a NotebookLM URL, run the Add Notebook Workflow.
    - If browser control is available, open `https://notebooklm.google.com` and
      ask the user to open or choose a notebook to register.

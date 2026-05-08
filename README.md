@@ -107,7 +107,7 @@ Use $notebooklm to list my notebooks.
 Resultado esperado con la biblioteca vacia:
 
 ```text
-No notebooks registered yet.
+No notebooks registered.
 ```
 
 Ese mensaje no debe ser el final del flujo. Codex debe continuar de forma
