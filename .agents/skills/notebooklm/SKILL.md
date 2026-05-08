@@ -1,33 +1,120 @@
 ---
 name: notebooklm
 description: >
-  Query Google NotebookLM notebooks using Codex's Chrome browser bridge.
-  Trigger when the user mentions NotebookLM, asks to query their notebooks,
-  wants source-grounded answers from uploaded documents, shares a NotebookLM
-  URL, or uses phrases like "ask my NotebookLM", "check my docs",
-  "query my notebook". Requires Chrome bridge/browser control to be connected.
-  Do NOT trigger for general web searches, code questions, or tasks unrelated
-  to the user's NotebookLM document collections.
+  Query Google NotebookLM notebooks through a user-authenticated Chrome session
+  controlled by the Codex Chrome plugin when available, or by Codex
+  browser/computer-use tooling as a fallback. Trigger when the user mentions
+  NotebookLM, asks to query their notebooks, wants source-grounded answers from
+  uploaded documents, shares a NotebookLM URL, or uses phrases like "ask my
+  NotebookLM", "check my docs", or "query my notebook". Requires Chrome to be
+  installed, the user to be logged into Google, and Codex to have Chrome plugin
+  or browser/computer-use control. Do NOT trigger for general web searches,
+  code questions, or tasks unrelated to the user's NotebookLM document
+  collections.
 ---
 
 # NotebookLM Skill for Codex
 
-Use this skill to interact with Google NotebookLM through Codex browser control
-(Chrome extension/bridge). The browser session uses the user's existing Google
-login, so no API keys or cookie handling is required.
+Use this skill to interact with Google NotebookLM through the user's existing
+Chrome session. Chrome handles Google authentication; do not manage cookies,
+API keys, Playwright profiles, or login state manually.
 
 ## Preconditions
 
-- Codex browser control for Chrome is installed and connected.
-- User is logged into Google in that Chrome profile.
-- User has at least one NotebookLM notebook with uploaded sources.
+- Google Chrome is installed.
+- Codex can control Chrome through the Chrome plugin, or can control/inspect
+  Chrome through browser/computer-use tooling.
+- The user is logged into Google in that Chrome profile.
+- The user has at least one NotebookLM notebook with uploaded sources.
+
+## Control Model
+
+Use the best available Chrome control path in this order, and report which path
+was actually used:
+
+1. **Codex Chrome plugin:** If the user mentions `@chrome` or the runtime
+   exposes the Chrome plugin, use it for signed-in Chrome browsing. In current
+   Codex runtimes this may appear as a Chrome skill plus the Node REPL
+   `browser-client` backend, not necessarily as a separate visible
+   `mcp__chrome__...` tool. Load the Chrome skill instructions when available
+   and bootstrap the extension browser through its documented
+   `scripts/browser-client.mjs` flow.
+
+   The official Codex Chrome extension docs
+   (`https://developers.openai.com/codex/app/chrome-extension`) show direct
+   invocation with prompts such as:
+
+   ```text
+   @Chrome open Salesforce and update the account from these call notes.
+   ```
+
+   For NotebookLM, adapt that pattern:
+
+   ```text
+   @Chrome open https://notebooklm.google.com/notebook/<id>
+   ```
+
+   A Chrome plugin test only counts as validated if Codex used the Chrome
+   plugin/browser-client path to list, claim, open, navigate, or interact with
+   Chrome tabs.
+
+2. **Computer-use fallback:** If the Chrome plugin path is unavailable or fails
+   after the Chrome skill's connection checks, use the available Chrome
+   computer-use controls directly. This is a valid NotebookLM fallback, but it
+   does **not** validate the Chrome plugin path. State clearly that Computer Use
+   was used as fallback.
+
+Observed working computer-use fallback flow:
+
+1. Open Chrome to `https://notebooklm.google.com` or a notebook URL.
+2. Inspect the Chrome window/accessibility tree.
+3. Confirm NotebookLM is authenticated and notebook content is visible.
+4. Locate the chat input with description/placeholder like `Cuadro de consulta`
+   or `Empieza a escribir...`.
+5. Set/type the question, click/send with the `Enviar` button, then wait until
+   NotebookLM finishes streaming and reports the response as ready.
+6. Read the generated answer and citation markers from the page.
+
+The Chrome extension popup should show `Connected`. If it is disconnected,
+reconnect the Chrome plugin before using the plugin path.
+
+## Chrome Plugin Notes
+
+When the Chrome plugin is available through `browser-client`, a working flow is:
+
+1. Use the Chrome skill to initialize the extension browser.
+2. Confirm communication with a lightweight call such as listing open tabs.
+3. Open or claim the NotebookLM tab.
+4. Use Playwright/DOM APIs exposed by the Chrome plugin to locate the
+   `Cuadro de consulta` textbox and submit the question.
+5. Read the final NotebookLM response only after the page reports
+   `Respuesta lista.` or an equivalent ready state.
+
+If a NotebookLM chat has a long history, full DOM snapshots may become slow or
+time out. Prefer scoped DOM filtering, visible DOM, or a fresh notebook tab
+rather than repeatedly dumping the whole page.
 
 ## Quick Start
 
-1. Open NotebookLM in the controlled browser:
-   `@Chrome open https://notebooklm.google.com`
-2. Wait for the page to load.
-3. Ask the user's question in the notebook chat box.
+For the homepage:
+
+```text
+Open Chrome to https://notebooklm.google.com
+```
+
+For a specific notebook:
+
+```text
+Open Chrome to https://notebooklm.google.com/notebook/<id>
+```
+
+Then submit the user's question in the notebook chat box.
+
+If `@Chrome` is available, the equivalent direct prompt is:
+
+```text
+@Chrome open https://notebooklm.google.com/notebook/<id>
+```
 
 ## Local Notebook Library
 
@@ -55,57 +142,103 @@ Each notebook entry should look like:
 }
 ```
 
-### Add notebook workflow
+### Add Notebook Workflow
 
-When user asks to add a notebook:
+When the user asks to add a notebook:
 
-1. If user provides URL, open it first.
+1. If the user provides a NotebookLM URL, open it first.
 2. Ask NotebookLM: "What is the content of this notebook? What topics are covered? Give a brief overview."
-3. Use this answer (and user context) to fill metadata.
-4. Never invent topics/description when unsure.
+3. Use the answer, visible title, source list, and user context to fill metadata.
+4. Never invent topics or descriptions when unsure.
+5. Update `data/library.json` and keep it valid JSON.
 
-### Select notebook workflow
+### Select Notebook Workflow
 
 Priority order:
 
-1. If user gives a NotebookLM URL, use it directly.
-2. If user gives a topic, match against `topics`, `description`, and `name` in library.
+1. If the user gives a NotebookLM URL, use it directly.
+2. If the user gives a topic, match against `topics`, `description`, and `name` in the library.
 3. Else if `active_notebook_id` exists, use it.
-4. Else list notebooks and ask user to choose.
+4. Else list notebooks and ask the user to choose.
 
-If ambiguous, ask a short clarification question.
+If multiple notebooks plausibly match, ask a short clarification question.
 
 ## Query Workflow
 
-1. Open the selected notebook URL.
-2. Wait until notebook interface fully loads.
-3. Type a self-contained question in the input box and submit.
-4. Wait for streaming to complete.
-5. Read answer + citations.
-6. If answer is incomplete, send follow-up question(s).
-7. Return a synthesized response to user, preserving source grounding.
+1. Open the selected notebook URL in Chrome.
+2. Wait until the NotebookLM interface is fully loaded.
+3. Confirm the desired source set is selected when visible.
+4. Locate the chat input. In Spanish UI it appears as:
+   - description: `Cuadro de consulta`
+   - placeholder: `Empieza a escribir...`
+5. Type or set a self-contained question and submit with `Enviar`.
+6. Wait while NotebookLM streams status messages such as:
+   - `Assessing relevance...`
+   - `Reading through pages...`
+   - `Refining the Response...`
+7. Read the final answer only after the page indicates the response is ready.
+8. Preserve citation markers returned by NotebookLM, typically numbered markers
+   linked to source files such as `1: source.pdf`.
+9. If the answer is incomplete, ask targeted follow-up questions in the same notebook.
+10. Return a synthesized response to the user grounded in NotebookLM's answer.
 
 ## Response Rules
 
 - Prioritize NotebookLM-grounded content from user sources.
 - If source docs do not contain the answer, clearly say so.
-- Do not silently mix external facts unless user explicitly asks.
+- Do not silently mix in external facts unless the user explicitly asks.
 - Include citation signals returned by NotebookLM whenever available.
-- Treat notebook contents as sensitive/private.
+- Treat notebook contents as private user data.
+- Mention operational failures separately from source-content limitations.
+- For operational reports, distinguish **Chrome plugin validated** from
+  **Computer Use fallback validated**. Do not claim the Chrome plugin worked
+  unless the Chrome plugin/browser-client path was actually used.
 
 ## Troubleshooting
 
-- Bridge disconnected: ask user to reconnect Codex Chrome control.
-- Redirect to Google login: ask user to sign in in Chrome.
-- Notebook not found: confirm URL and/or library entry.
-- Empty/weak response: retry with clearer and more specific question.
+- Chrome cannot be opened: ask the user to install or launch Chrome.
+- Chrome plugin unavailable in the current thread: fall back to computer-use controls, or ask the user to start a new Codex thread after enabling the Chrome plugin.
+- Chrome extension disconnected: open the Codex extension popup in Chrome and confirm it shows `Connected`; if not, remove and re-add the Chrome plugin from Codex Plugins.
+- Browser/computer-use control unavailable: report that Codex cannot operate NotebookLM in this runtime.
+- Redirect to Google login: ask the user to sign in in Chrome, then retry.
+- Notebook URL not found: confirm the URL and/or library entry.
+- Chat input not visible: wait for the page to load, switch to the notebook chat panel, or inspect the accessibility tree again.
+- Empty or weak response: retry with a more specific, self-contained question.
 - Rate limits: reduce follow-ups and batch sub-questions.
+
+## Validated Behavior
+
+Both control paths have been validated against this real NotebookLM notebook:
+
+```text
+https://notebooklm.google.com/notebook/81cca36d-c821-4db0-8e67-1b2dfb960eee
+```
+
+Validated Chrome plugin behavior:
+
+- A user explicitly invoked `[@chrome](plugin://chrome@openai-bundled)`.
+- Codex loaded the Chrome skill and controlled Chrome through the extension
+  `browser-client` backend in the Node REPL.
+- Codex listed open Chrome tabs, claimed/opened the NotebookLM tab, submitted
+  questions, waited for `Respuesta lista.`, and extracted answers with numbered
+  citations from `2605.04012.pdf`.
+
+Validated computer-use fallback behavior:
+
+- Codex opened the notebook through Chrome UI control, submitted a question
+  through the chat input, waited for NotebookLM to finish, and read an answer
+  with numbered citations from `2605.04012.pdf`.
+
+The Codex Chrome extension was also verified as installed and connected in
+Chrome, showing `Connected` and version `v1.1.4`.
 
 ## File Layout
 
 ```text
 .agents/skills/notebooklm/
 ├── SKILL.md
+├── agents/
+│   └── openai.yaml
 ├── data/
 │   └── library.json
 └── references/
