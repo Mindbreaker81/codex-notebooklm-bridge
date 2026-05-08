@@ -22,6 +22,13 @@ The local notebook library exists and is valid JSON:
 
 Current limitation: the library is empty, so only URL-based testing can start immediately.
 
+Use the maintenance script for deterministic library checks:
+
+```bash
+python .agents/skills/notebooklm/scripts/library.py validate
+python .agents/skills/notebooklm/scripts/library.py list
+```
+
 ## Updated Control Assumption
 
 There are now two Chrome control paths:
@@ -59,6 +66,12 @@ session.
 
 Computer Use remains a valid fallback, but fallback success must be reported as
 fallback success. It must not be counted as validation of the Chrome plugin.
+
+Validated control-path details are recorded in:
+
+```text
+docs/validated-flows.md
+```
 
 ## What Still Needs Testing
 
@@ -156,6 +169,11 @@ Pass condition:
 - NotebookLM loads in an authenticated Chrome session controlled or inspected by Codex.
 - The result is labeled as fallback validation, not Chrome plugin validation.
 
+Current result:
+
+- Passed manually against the SymptomAI notebook.
+- Revalidation steps are documented in `docs/validated-flows.md`.
+
 Blocking failure:
 
 - Codex has no callable browser/computer-use control.
@@ -237,6 +255,7 @@ Pass condition:
   - `topics`
   - `use_cases`
 - The JSON remains valid.
+- `python .agents/skills/notebooklm/scripts/library.py validate` passes.
 
 ### 7. Topic-Based Selection
 
@@ -305,15 +324,13 @@ Pass condition:
 
 1. Run the skill discovery test.
 2. Run the Chrome plugin availability test.
-3. Start a fresh Codex thread and test direct `@Chrome` invocation.
-4. Keep Computer Use as fallback for runtimes without `@Chrome`.
-5. Run one direct URL query against a real NotebookLM notebook.
-6. Register that notebook in `library.json`.
-7. Test topic-based selection.
-8. Test active notebook fallback.
-9. Test the listed failure modes.
-10. Refine `SKILL.md` based on actual NotebookLM UI behavior.
-11. Decide whether to add helper scripts for library maintenance.
+3. Re-run the manual Computer Use fallback scenario in `docs/validated-flows.md`
+   after NotebookLM UI or Codex browser tooling changes.
+4. Register a real notebook in `library.json`.
+5. Test topic-based selection.
+6. Test active notebook fallback.
+7. Run the listed failure modes and `docs/pressure-tests.md`.
+8. Refine `SKILL.md` based on actual NotebookLM UI behavior.
 
 ## `agents/openai.yaml`
 
@@ -337,11 +354,11 @@ policy:
 
 ## Cleanup Before Broader Testing
 
-The working tree previously contained macOS AppleDouble files named `._*`.
-They were ignored by `.gitignore`, but local Git commands emitted warnings from
-AppleDouble files inside `.git/objects/pack`.
+The working tree may contain macOS AppleDouble files named `._*`. They are
+ignored by `.gitignore`, but on external/macOS volumes they can reappear inside
+`.git` or cache directories.
 
-Cleanup has been run:
+Best-effort cleanup:
 
 ```bash
 find . -name '._*' -type f -delete
@@ -353,11 +370,8 @@ Verification:
 find . -name '._*' -type f -print | wc -l
 ```
 
-Result:
-
-```text
-0
-```
+If the count is non-zero but `git status --short` does not show these files,
+they are ignored local metadata and not part of the skill package.
 
 ## Minimum Definition of Ready for Real Use
 
@@ -372,3 +386,4 @@ The skill is ready for practical use when all of these are true:
 - Active notebook fallback works.
 - Failure modes produce clear, non-fabricated responses.
 - `SKILL.md` reflects the validated Chrome control path and current NotebookLM UI behavior.
+- `scripts/library.py validate` passes.

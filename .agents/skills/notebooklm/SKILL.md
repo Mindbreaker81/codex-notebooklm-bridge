@@ -22,15 +22,18 @@ API keys, Playwright profiles, or login state manually.
 - The user is logged into Google in that Chrome profile.
 - The user has at least one NotebookLM notebook with uploaded sources.
 
-## When to Use
+## Capabilities
 
 Use this skill for:
 
+- Opening NotebookLM notebooks in the user's authenticated Chrome session.
 - Querying a NotebookLM notebook by URL.
 - Selecting a notebook from `data/library.json` by topic or active notebook.
 - Registering NotebookLM notebooks in the local library.
 - Extracting NotebookLM answers with source citations.
 - Testing whether the Chrome plugin path or Computer Use fallback is operating.
+
+## Limits
 
 Do not use this skill for:
 
@@ -38,6 +41,8 @@ Do not use this skill for:
 - Reading PDFs directly outside NotebookLM.
 - Answering from model knowledge when the user asked for NotebookLM grounding.
 - Managing Google login credentials, cookies, local storage, or browser profiles.
+- Calling a NotebookLM API. This skill operates the NotebookLM UI because no
+  stable public NotebookLM API is assumed.
 
 ## Control Model
 
@@ -75,6 +80,15 @@ was actually used:
    computer-use controls directly. This is a valid NotebookLM fallback, but it
    does **not** validate the Chrome plugin path. State clearly that Computer Use
    was used as fallback.
+
+Always report the operational path in diagnostics and validation tasks using one
+of these exact labels:
+
+```text
+Control path used: Chrome plugin
+Control path used: Computer Use fallback
+No browser control available
+```
 
 Observed working computer-use fallback flow:
 
@@ -140,6 +154,18 @@ If the file does not exist, create it using this schema:
   "active_notebook_id": null
 }
 ```
+
+Use `scripts/library.py` for deterministic library maintenance when editing the
+library outside NotebookLM-driven registration:
+
+```bash
+python .agents/skills/notebooklm/scripts/library.py validate
+python .agents/skills/notebooklm/scripts/library.py list
+python .agents/skills/notebooklm/scripts/library.py set-active <id>
+```
+
+The script only edits `data/library.json`. It does not open Chrome, query
+NotebookLM, or infer metadata.
 
 Each notebook entry should look like:
 
@@ -270,6 +296,7 @@ Validated computer-use fallback behavior:
 - Codex opened the notebook through Chrome UI control, submitted a question
   through the chat input, waited for NotebookLM to finish, and read an answer
   with numbered citations from `2605.04012.pdf`.
+- Reproducible fallback steps are documented in `docs/validated-flows.md`.
 
 The Codex Chrome extension was also verified as installed and connected in
 Chrome, showing `Connected` and version `v1.1.4`.
@@ -283,6 +310,8 @@ Chrome, showing `Connected` and version `v1.1.4`.
 │   └── openai.yaml
 ├── data/
 │   └── library.json
+├── scripts/
+│   └── library.py
 └── references/
     └── usage_patterns.md
 ```
