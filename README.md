@@ -1,21 +1,28 @@
-# Codex Notebook BridgeLM
+# Codex NotebookLM Bridge Skill
 
-Skill para conectar Codex con NotebookLM mediante el plugin de Chrome de Codex.
+Repositorio inicial para una skill de Codex que conecta con Google NotebookLM
+mediante control del navegador Chrome (extensión/bridge de Codex), con enfoque
+RAG sobre fuentes del usuario.
+
+## Qué incluye este repo
+
+- Skill lista para instalar en `.agents/skills/notebooklm/SKILL.md`.
+- Biblioteca local de notebooks en `.agents/skills/notebooklm/data/library.json`.
+- Guía de patrones de uso en `.agents/skills/notebooklm/references/usage_patterns.md`.
 
 ## Objetivo
-Permitir flujos de trabajo donde Codex consulte, resuma y reutilice conocimiento gestionado en NotebookLM.
 
-## Estado
-🚧 En fase inicial (privado)
+Permitir que Codex consulte notebooks de NotebookLM del usuario y responda con
+contenido grounded en sus documentos, reutilizando citas y minimizando
+alucinaciones.
 
-## Alcance inicial
-- Definir arquitectura de conexión Codex ↔ NotebookLM
-- Configurar autenticación y permisos
-- Crear comandos base de la skill
-- Probar flujo de uso de extremo a extremo
+## Estado actual
 
-## Próximos pasos
-1. Estructura base del proyecto
-2. Configuración del plugin de Chrome
-3. Primer MVP funcional
-4. Documentación de uso
+✅ MVP de instrucciones de skill preparado.
+
+## Próximos pasos sugeridos
+
+1. Validar en una sesión real con el bridge de Chrome conectado.
+2. Ajustar selectores/pasos de interacción según UX actual de NotebookLM.
+3. Añadir automatizaciones auxiliares (por ejemplo scripts de mantenimiento de la biblioteca).
+4. Incluir ejemplos de prompts de alta calidad para consultas complejas.
