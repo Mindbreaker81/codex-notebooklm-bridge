@@ -185,10 +185,31 @@ Each notebook entry should look like:
 When the user asks to add a notebook:
 
 1. If the user provides a NotebookLM URL, open it first.
-2. Ask NotebookLM: "What is the content of this notebook? What topics are covered? Give a brief overview."
-3. Use the answer, visible title, source list, and user context to fill metadata.
-4. Never invent topics or descriptions when unsure.
-5. Update `data/library.json` and keep it valid JSON.
+2. If the user does not provide a URL and browser control is available, open
+   `https://notebooklm.google.com` and ask the user to open or choose the
+   notebook to register.
+3. If browser control is unavailable, ask for a NotebookLM URL.
+4. Ask NotebookLM: "What is the content of this notebook? What topics are covered? Give a brief overview."
+5. Use the answer, visible title, source list, and user context to fill metadata.
+6. Never invent topics or descriptions when unsure.
+7. Update `data/library.json` and keep it valid JSON.
+
+### List Notebook Workflow
+
+When the user asks to list notebooks:
+
+1. Load and validate `data/library.json`.
+2. If notebooks exist, list each notebook with id, name, topics, URL, and active
+   marker. If only one notebook exists and the user also asked a question, use it
+   directly.
+3. If the library is empty, report the canonical empty-library message
+   `No notebooks registered.`, then take the next useful registration step:
+   - If the user provided a NotebookLM URL, run the Add Notebook Workflow.
+   - If browser control is available, open `https://notebooklm.google.com` and
+     ask the user to open or choose a notebook to register.
+   - If browser control is unavailable, ask for a NotebookLM URL.
+4. Do not treat `No notebooks registered.` from `scripts/library.py list` as a
+   final answer unless the user explicitly asked for raw CLI output only.
 
 ### Select Notebook Workflow
 
@@ -196,10 +217,24 @@ Priority order:
 
 1. If the user gives a NotebookLM URL, use it directly.
 2. If the user gives a topic, match against `topics`, `description`, and `name` in the library.
-3. Else if `active_notebook_id` exists, use it.
-4. Else list notebooks and ask the user to choose.
+   - If exactly one notebook matches, use it.
+   - If multiple notebooks plausibly match, list candidates and ask a short
+     clarification question.
+   - If none match and the library has notebooks, list available notebooks and
+     ask whether to choose one or register another.
+   - If none match because the library is empty, run the List Notebook Workflow.
+3. Else if `active_notebook_id` exists and points to a notebook, use it.
+4. Else if `active_notebook_id` is missing or invalid, repair selection before
+   querying:
+   - If exactly one notebook exists, use it and offer to set it active.
+   - If multiple notebooks exist, list them and ask which should be active.
+   - If no notebooks exist, clear the invalid active value and run the List
+     Notebook Workflow.
+5. Else if exactly one notebook exists, use it directly.
+6. Else if multiple notebooks exist, list notebooks and ask the user to choose.
+7. Else run the List Notebook Workflow.
 
-If multiple notebooks plausibly match, ask a short clarification question.
+Do not query NotebookLM while the library selection is invalid or ambiguous.
 
 ## Query Workflow
 
@@ -217,7 +252,9 @@ If multiple notebooks plausibly match, ask a short clarification question.
 7. Read the final answer only after the page indicates the response is ready.
 8. Preserve citation markers returned by NotebookLM, typically numbered markers
    linked to source files such as `1: source.pdf`.
-9. If the answer is incomplete, ask targeted follow-up questions in the same notebook.
+9. If the answer is empty, weak, or lacks citations, ask 1-2 targeted follow-up
+   questions in the same notebook before giving up. Stop early if NotebookLM
+   clearly says the sources do not contain the answer.
 10. Return a synthesized response to the user grounded in NotebookLM's answer.
 
 For complex or repeated workflows, read `references/usage_patterns.md` for
@@ -262,8 +299,9 @@ sentence or omit it unless it matters for debugging.
 - Do not invent notebook descriptions, topics, or use cases.
 - Prefer short kebab-case IDs such as `example-research-notebook`.
 - If multiple notebooks match a topic, ask a short clarification question.
-- If `active_notebook_id` points to a missing notebook, report the configuration
-  problem before querying.
+- If `active_notebook_id` points to a missing notebook, repair selection before
+  querying by choosing a valid notebook, clearing the active value, or starting
+  registration when the library is empty.
 
 ## Troubleshooting
 
@@ -274,7 +312,8 @@ sentence or omit it unless it matters for debugging.
 - Redirect to Google login: ask the user to sign in in Chrome, then retry.
 - Notebook URL not found: confirm the URL and/or library entry.
 - Chat input not visible: wait for the page to load, switch to the notebook chat panel, or inspect the accessibility tree again.
-- Empty or weak response: retry with a more specific, self-contained question.
+- Empty or weak response: ask 1-2 more specific, self-contained follow-ups in
+  the same notebook before reporting insufficient source coverage.
 - Rate limits: reduce follow-ups and batch sub-questions.
 
 ## Validated Behavior

@@ -1,6 +1,6 @@
 # Codex NotebookLM Bridge Skill
 
-Version: `0.2.0`
+Version: `0.3.0`
 
 Skill local para consultar Google NotebookLM desde Codex usando la sesion
 autenticada de Chrome del usuario. El objetivo es obtener respuestas grounded en
@@ -16,6 +16,8 @@ interfaz.
 - Extraer titulo, fuentes, respuesta y citas numeradas.
 - Registrar notebooks en `.agents/skills/notebooklm/data/library.json`.
 - Seleccionar notebooks por tema o por notebook activo.
+- Iniciar registro o reparacion cuando la biblioteca esta vacia, no hay match
+  por tema o el notebook activo es invalido.
 - Diagnosticar si se uso Chrome plugin o Computer Use fallback.
 
 ## Que no hace
@@ -108,8 +110,11 @@ Resultado esperado con la biblioteca vacia:
 No notebooks registered.
 ```
 
-Codex deberia pedir una URL de NotebookLM o una accion para registrar un
-notebook.
+Ese mensaje no debe ser el final del flujo. Codex debe continuar de forma
+proactiva: si ya tiene una URL de NotebookLM, debe registrar ese notebook; si no
+la tiene y puede controlar Chrome, debe abrir `https://notebooklm.google.com`
+para que el usuario elija un notebook; si no puede controlar el navegador, debe
+pedir una URL de NotebookLM.
 
 ## Estructura
 
@@ -195,8 +200,9 @@ Que controles SOC2 aparecen y que evidencias piden?
 ```
 
 Codex compara el tema contra `topics`, `description` y `name` en
-`data/library.json`. Si hay varias coincidencias plausibles, debe preguntar cual
-usar.
+`data/library.json`. Si hay una coincidencia, la usa; si hay varias, pregunta
+cual usar; si no hay coincidencias, lista candidatos existentes o inicia el
+flujo de registro cuando la biblioteca esta vacia.
 
 ### Usar notebook activo
 
@@ -358,8 +364,8 @@ Detalles reproducibles:
 - Chats largos pueden hacer lentos los snapshots DOM completos; la skill prefiere
   extraccion acotada o pestanas frescas.
 - La calidad depende de las fuentes subidas al notebook.
-- Si NotebookLM no contiene una respuesta, Codex debe reportarlo en vez de
-  completar con conocimiento externo.
+- Si NotebookLM no contiene una respuesta tras 1-2 follow-ups concretos, Codex
+  debe reportarlo en vez de completar con conocimiento externo.
 
 ## Desarrollo
 

@@ -20,7 +20,9 @@ The local notebook library exists and is valid JSON:
 .agents/skills/notebooklm/data/library.json
 ```
 
-Current limitation: the library is empty, so only URL-based testing can start immediately.
+Current limitation: the library is empty, so testing should begin with a
+NotebookLM URL or by opening NotebookLM home and having the user choose a
+notebook to register.
 
 Use the maintenance script for deterministic library checks:
 
@@ -90,11 +92,17 @@ Expected result:
 - Codex loads the `notebooklm` skill.
 - Codex reads `data/library.json`.
 - Because the library is empty, Codex reports that no notebooks are registered yet.
-- Codex asks for a NotebookLM URL or a notebook to add.
+- Codex does not stop there:
+  - if the prompt includes a NotebookLM URL, Codex starts registration;
+  - if browser control is available, Codex opens `https://notebooklm.google.com`
+    and asks the user to choose or open a notebook;
+  - otherwise, Codex asks for a NotebookLM URL.
 
 Pass condition:
 
 - The skill triggers without manually pasting the skill instructions.
+- `No notebooks registered.` is not treated as the final answer unless the user
+  explicitly requested raw CLI output.
 
 ### 2. Chrome Plugin Availability
 
@@ -299,7 +307,9 @@ Expected result:
 Pass condition:
 
 - The active notebook is used correctly.
-- If the active ID is missing or invalid, Codex reports the configuration problem.
+- If the active ID is missing or invalid, Codex repairs selection before
+  querying: use the only notebook, ask which notebook should be active, or start
+  registration when the library is empty.
 
 ### 9. Failure Modes
 
@@ -319,6 +329,9 @@ Pass condition:
 - Codex reports the failure clearly.
 - Codex does not fabricate NotebookLM content.
 - Codex suggests the next concrete recovery step.
+- For empty or weak answers, Codex asks 1-2 targeted follow-ups before reporting
+  insufficient source coverage, unless NotebookLM clearly says the sources do
+  not contain the answer.
 
 ## Recommended Next Steps
 

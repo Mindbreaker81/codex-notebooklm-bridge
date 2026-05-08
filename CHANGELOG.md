@@ -2,6 +2,18 @@
 
 All notable changes to the NotebookLM Codex skill are tracked here.
 
+## 0.3.0 - 2026-05-08
+
+- Made empty-library handling proactive: `list my notebooks` no longer stops at
+  `No notebooks registered.` unless raw CLI output was explicitly requested.
+- Added registration recovery flows for NotebookLM URLs, NotebookLM home
+  selection, and unavailable browser control.
+- Added selection repair rules for invalid `active_notebook_id`, unmatched
+  topics, single-notebook libraries, and ambiguous notebook matches.
+- Added weak-answer handling that asks 1-2 targeted NotebookLM follow-ups before
+  reporting insufficient source coverage.
+- Updated usage patterns and testing guidance for proactive library workflows.
+
 ## 0.2.0 - 2026-05-08
 
 - Clarified installation paths for workspace-local and global Codex use.
