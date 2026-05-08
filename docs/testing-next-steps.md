@@ -22,15 +22,43 @@ The local notebook library exists and is valid JSON:
 
 Current limitation: the library is empty, so only URL-based testing can start immediately.
 
-## Main Unknown
+## Updated Control Assumption
 
-The skill assumes Codex can control Chrome through a browser bridge using instructions such as:
+There are now two Chrome control paths:
+
+1. **Codex Chrome plugin:** preferred when the runtime exposes `@Chrome` or
+   when the user explicitly invokes the Chrome plugin mention.
+2. **Computer-use fallback:** use Chrome accessibility/computer-use controls
+   when the Chrome plugin path is not exposed or fails its connection checks.
+
+The official Codex Chrome extension docs
+(`https://developers.openai.com/codex/app/chrome-extension`) show direct
+prompts such as:
 
 ```text
 @Chrome open https://notebooklm.google.com
 ```
 
-Before testing NotebookLM behavior, confirm that this is the correct invocation surface for the installed Codex browser/plugin. If the actual tool name or command syntax differs, update `SKILL.md` before running functional tests.
+The extension itself has been verified locally: Chrome's Codex extension popup
+shows `Connected`, version `v1.1.4`.
+
+The direct Chrome plugin path is now validated in a thread where the user
+explicitly invoked:
+
+```text
+[@chrome](plugin://chrome@openai-bundled) open https://notebooklm.google.com
+```
+
+Important nuance: the working Chrome path did not appear as a separate
+`mcp__chrome__...` tool. It appeared as the Chrome plugin skill plus the
+extension `browser-client` backend executed through the Node REPL. That still
+counts as native Chrome plugin validation because Codex communicated with the
+Codex Chrome Extension, listed open Chrome tabs, claimed/opened NotebookLM
+tabs, submitted questions, and extracted NotebookLM answers from the Chrome
+session.
+
+Computer Use remains a valid fallback, but fallback success must be reported as
+fallback success. It must not be counted as validation of the Chrome plugin.
 
 ## What Still Needs Testing
 
@@ -55,9 +83,61 @@ Pass condition:
 
 - The skill triggers without manually pasting the skill instructions.
 
-### 2. Browser Bridge Availability
+### 2. Chrome Plugin Availability
 
-Goal: confirm Codex can open NotebookLM in the controlled browser.
+Goal: confirm the Codex Chrome plugin is installed and connected.
+
+Test:
+
+```text
+Open Chrome's extensions menu and inspect the Codex extension.
+```
+
+Expected result:
+
+- Codex extension appears under Chrome extensions.
+- Extension has access to the current site when appropriate.
+- Popup shows `Connected`.
+
+Pass condition:
+
+- Codex extension popup shows `Connected`.
+
+Current result:
+
+- Passed locally with Codex Chrome extension `v1.1.4`.
+
+### 3. Direct `@Chrome` Invocation
+
+Goal: confirm Codex can invoke the plugin as a first-class browser tool.
+
+Test from a fresh Codex thread:
+
+```text
+@Chrome open https://notebooklm.google.com
+```
+
+Expected result:
+
+- Codex routes the request to the Chrome plugin.
+- NotebookLM opens in Chrome.
+- Codex asks for website approval if needed.
+- Codex can continue interacting with the page.
+- The implementation may use the Chrome skill's `browser-client` backend
+  through Node REPL rather than a separate visible Chrome MCP namespace.
+
+Pass condition:
+
+- The task uses the Chrome plugin/browser-client path, not Computer Use.
+
+Current result:
+
+- Passed. Codex opened NotebookLM through the Chrome plugin path and kept the
+  NotebookLM tab open.
+
+### 4. Computer-Use Fallback Availability
+
+Goal: confirm Codex can open NotebookLM in Chrome and inspect the page.
 
 Test:
 
@@ -67,21 +147,21 @@ Use $notebooklm to open https://notebooklm.google.com
 
 Expected result:
 
-- Codex opens NotebookLM through the configured browser bridge.
+- Codex opens NotebookLM through Chrome control.
 - The browser uses the user's existing Google login.
 - If login is required, Codex reports that the user must sign in.
 
 Pass condition:
 
-- NotebookLM loads in an authenticated browser session controlled by Codex.
+- NotebookLM loads in an authenticated Chrome session controlled or inspected by Codex.
+- The result is labeled as fallback validation, not Chrome plugin validation.
 
 Blocking failure:
 
-- Codex has no callable browser bridge.
-- The `@Chrome open` syntax is unsupported.
+- Codex has no callable browser/computer-use control.
 - The browser opens but Codex cannot inspect or interact with the page.
 
-### 3. Direct URL Query
+### 5. Direct URL Query
 
 Goal: validate the simplest functional path without relying on the local library.
 
@@ -103,8 +183,33 @@ Pass condition:
 
 - The final answer is based on NotebookLM output, not external model knowledge.
 - Citations or source references are preserved when NotebookLM provides them.
+- The report states whether the Chrome plugin path or Computer Use fallback was
+  used.
 
-### 4. Add Notebook to Library
+Current result:
+
+- Passed through the Chrome plugin/browser-client path against:
+
+  ```text
+  https://notebooklm.google.com/notebook/<id>
+  ```
+
+- Notebook title extracted:
+
+  ```text
+  Example Research Notebook
+  ```
+
+- Source cited:
+
+  ```text
+  example-source.pdf
+  ```
+
+- The test submitted multiple questions, waited for NotebookLM's ready state,
+  and extracted numbered citations from the NotebookLM answer.
+
+### 6. Add Notebook to Library
 
 Goal: validate the registration workflow.
 
@@ -133,7 +238,7 @@ Pass condition:
   - `use_cases`
 - The JSON remains valid.
 
-### 5. Topic-Based Selection
+### 7. Topic-Based Selection
 
 Goal: validate lookup from `library.json`.
 
@@ -154,7 +259,7 @@ Pass condition:
 - Correct notebook selected from library metadata.
 - Ambiguous matches are not guessed.
 
-### 6. Active Notebook Fallback
+### 8. Active Notebook Fallback
 
 Goal: validate the default notebook path.
 
@@ -177,11 +282,13 @@ Pass condition:
 - The active notebook is used correctly.
 - If the active ID is missing or invalid, Codex reports the configuration problem.
 
-### 7. Failure Modes
+### 9. Failure Modes
 
 Validate these cases deliberately:
 
-- Browser bridge disconnected.
+- Chrome plugin unavailable in the current thread.
+- Chrome extension disconnected.
+- Browser/computer-use control unavailable.
 - Google login required.
 - Notebook URL invalid or inaccessible.
 - NotebookLM returns an empty or weak answer.
@@ -196,28 +303,27 @@ Pass condition:
 
 ## Recommended Next Steps
 
-1. Confirm the actual Codex browser/plugin command syntax.
-2. Update `SKILL.md` if `@Chrome open` is not the correct command.
-3. Add `agents/openai.yaml` for UI metadata and a default prompt.
-4. Run the skill discovery test.
-5. Run the browser bridge availability test.
-6. Run one direct URL query against a real NotebookLM notebook.
-7. Register that notebook in `library.json`.
-8. Test topic-based selection.
-9. Test active notebook fallback.
-10. Test the listed failure modes.
-11. Refine `SKILL.md` based on actual NotebookLM UI behavior.
-12. Decide whether to add helper scripts for library maintenance.
+1. Run the skill discovery test.
+2. Run the Chrome plugin availability test.
+3. Start a fresh Codex thread and test direct `@Chrome` invocation.
+4. Keep Computer Use as fallback for runtimes without `@Chrome`.
+5. Run one direct URL query against a real NotebookLM notebook.
+6. Register that notebook in `library.json`.
+7. Test topic-based selection.
+8. Test active notebook fallback.
+9. Test the listed failure modes.
+10. Refine `SKILL.md` based on actual NotebookLM UI behavior.
+11. Decide whether to add helper scripts for library maintenance.
 
-## Suggested `agents/openai.yaml`
+## `agents/openai.yaml`
 
-Create:
+Created:
 
 ```text
 .agents/skills/notebooklm/agents/openai.yaml
 ```
 
-Suggested content:
+Current content:
 
 ```yaml
 interface:
@@ -231,22 +337,26 @@ policy:
 
 ## Cleanup Before Broader Testing
 
-The working tree contains macOS AppleDouble files named `._*`. They are ignored by `.gitignore`, but local Git commands currently emit warnings from AppleDouble files inside `.git/objects/pack`.
+The working tree previously contained macOS AppleDouble files named `._*`.
+They were ignored by `.gitignore`, but local Git commands emitted warnings from
+AppleDouble files inside `.git/objects/pack`.
 
-Before relying on Git history or packaging the repo, clean local AppleDouble files carefully. Do not delete normal Git pack files.
-
-Suggested local cleanup command:
+Cleanup has been run:
 
 ```bash
 find . -name '._*' -type f -delete
 ```
 
-Then re-run:
+Verification:
 
 ```bash
-git status --short
-python /Users/erosales/.codex/skills/.system/skill-creator/scripts/quick_validate.py .agents/skills/notebooklm
-python -m json.tool .agents/skills/notebooklm/data/library.json
+find . -name '._*' -type f -print | wc -l
+```
+
+Result:
+
+```text
+0
 ```
 
 ## Minimum Definition of Ready for Real Use
@@ -254,11 +364,11 @@ python -m json.tool .agents/skills/notebooklm/data/library.json
 The skill is ready for practical use when all of these are true:
 
 - Codex discovers `$notebooklm`.
-- Codex can control the browser bridge.
+- Codex can use the Chrome plugin path, or can control/inspect Chrome through browser/computer-use tooling.
 - NotebookLM opens authenticated.
 - A direct URL query returns grounded content.
 - Notebook registration updates `library.json` correctly.
 - Topic selection works from library metadata.
 - Active notebook fallback works.
 - Failure modes produce clear, non-fabricated responses.
-- `SKILL.md` reflects the real browser command syntax and current NotebookLM UI behavior.
+- `SKILL.md` reflects the validated Chrome control path and current NotebookLM UI behavior.

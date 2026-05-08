@@ -1,0 +1,7 @@
+interface:
+  display_name: "NotebookLM"
+  short_description: "Query NotebookLM notebooks from Codex"
+  default_prompt: "Use $notebooklm to query one of my NotebookLM notebooks with source-grounded citations."
+
+policy:
+  allow_implicit_invocation: true
