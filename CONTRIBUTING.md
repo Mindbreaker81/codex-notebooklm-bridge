@@ -19,7 +19,9 @@ python -m pytest
 
 ## Style
 
-- Keep docs in Spanish when they describe the skill behavior.
+- Use Spanish for user-facing README sections when practical.
+- Use English for internal skill instructions and technical validation docs when
+  it improves precision or matches the existing file.
 - Keep JSON deterministic and valid.
 - Prefer small, explicit changes over large rewrites.
 

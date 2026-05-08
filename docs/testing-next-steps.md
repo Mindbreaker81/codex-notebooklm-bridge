@@ -11,7 +11,7 @@ The repository contains a valid Codex skill at:
 Basic validation passes with:
 
 ```bash
-python /Users/erosales/.codex/skills/.system/skill-creator/scripts/quick_validate.py .agents/skills/notebooklm
+python <path-to-skill-creator>/scripts/quick_validate.py .agents/skills/notebooklm
 ```
 
 The local notebook library exists and is valid JSON:

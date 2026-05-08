@@ -59,12 +59,6 @@ skill local en:
 .agents/skills/notebooklm
 ```
 
-En esta maquina, el repo esta en:
-
-```text
-/Volumes/EXTERNAL/proyectos/codex-notebooklm-bridge
-```
-
 ### Opcion B: clonar el repo e instalar la skill globalmente
 
 Esta es la forma recomendada si quieres usar `$notebooklm` desde cualquier
@@ -312,7 +306,7 @@ No se debe presentar el fallback como validacion del plugin Chrome.
 Validar la skill:
 
 ```bash
-python /Users/erosales/.codex/skills/.system/skill-creator/scripts/quick_validate.py .agents/skills/notebooklm
+python <path-to-skill-creator>/scripts/quick_validate.py .agents/skills/notebooklm
 ```
 
 Validar la biblioteca:
@@ -372,7 +366,7 @@ Detalles reproducibles:
 Antes de publicar cambios:
 
 ```bash
-python /Users/erosales/.codex/skills/.system/skill-creator/scripts/quick_validate.py .agents/skills/notebooklm
+python <path-to-skill-creator>/scripts/quick_validate.py .agents/skills/notebooklm
 python .agents/skills/notebooklm/scripts/library.py validate
 python -m json.tool .agents/skills/notebooklm/data/library.json
 python -m pytest tests/test_library_script.py

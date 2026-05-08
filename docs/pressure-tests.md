@@ -62,7 +62,7 @@ Control path used: Computer Use fallback
 
 Fail:
 
-- Calls fallback success "Chrome plugin validated".
+- Calls fallback success `Control path used: Chrome plugin`.
 
 ## 4. Ambiguous Topic Selection
 

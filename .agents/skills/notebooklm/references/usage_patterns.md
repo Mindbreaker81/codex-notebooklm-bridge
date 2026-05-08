@@ -135,7 +135,7 @@ Flow:
 1. Try the Chrome plugin path first.
 2. If unavailable or broken, use Computer Use fallback only after reporting the
    fallback switch.
-3. In the final response, state:
-   - `Chrome plugin validated`, or
-   - `Computer Use fallback validated`, or
+3. In the final response, use the exact canonical label:
+   - `Control path used: Chrome plugin`, or
+   - `Control path used: Computer Use fallback`, or
    - `No browser control available`.

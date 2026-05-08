@@ -231,9 +231,12 @@ example prompts and library-selection patterns.
 - Include citation signals returned by NotebookLM whenever available.
 - Treat notebook contents as private user data.
 - Mention operational failures separately from source-content limitations.
-- For operational reports, distinguish **Chrome plugin validated** from
-  **Computer Use fallback validated**. Do not claim the Chrome plugin worked
-  unless the Chrome plugin/browser-client path was actually used.
+- For operational reports, use the exact canonical labels:
+  `Control path used: Chrome plugin`,
+  `Control path used: Computer Use fallback`, or
+  `No browser control available`.
+- Do not claim the Chrome plugin worked unless the Chrome plugin/browser-client
+  path was actually used.
 
 Use this response shape when citations are available:
 
@@ -246,7 +249,7 @@ Answer:
 - <claim> [citation markers]
 
 Notes:
-- Control path used: <Chrome plugin | Computer Use fallback>
+- Control path used: Chrome plugin
 - Limitation: <only if NotebookLM/source coverage was incomplete>
 ```
 
