@@ -1,16 +1,11 @@
 ---
 name: notebooklm
 description: >
-  Query Google NotebookLM notebooks through a user-authenticated Chrome session
-  controlled by the Codex Chrome plugin when available, or by Codex
-  browser/computer-use tooling as a fallback. Trigger when the user mentions
-  NotebookLM, asks to query their notebooks, wants source-grounded answers from
-  uploaded documents, shares a NotebookLM URL, or uses phrases like "ask my
-  NotebookLM", "check my docs", or "query my notebook". Requires Chrome to be
-  installed, the user to be logged into Google, and Codex to have Chrome plugin
-  or browser/computer-use control. Do NOT trigger for general web searches,
-  code questions, or tasks unrelated to the user's NotebookLM document
-  collections.
+  Use when the user mentions NotebookLM, asks to query their notebooks or docs,
+  wants source-grounded answers from uploaded documents, shares a NotebookLM
+  URL, or uses phrases like "ask my NotebookLM", "check my docs", or "query my
+  notebook". Do NOT trigger for general web searches, code questions, or tasks
+  unrelated to the user's NotebookLM document collections.
 ---
 
 # NotebookLM Skill for Codex
@@ -26,6 +21,23 @@ API keys, Playwright profiles, or login state manually.
   Chrome through browser/computer-use tooling.
 - The user is logged into Google in that Chrome profile.
 - The user has at least one NotebookLM notebook with uploaded sources.
+
+## When to Use
+
+Use this skill for:
+
+- Querying a NotebookLM notebook by URL.
+- Selecting a notebook from `data/library.json` by topic or active notebook.
+- Registering NotebookLM notebooks in the local library.
+- Extracting NotebookLM answers with source citations.
+- Testing whether the Chrome plugin path or Computer Use fallback is operating.
+
+Do not use this skill for:
+
+- General web research.
+- Reading PDFs directly outside NotebookLM.
+- Answering from model knowledge when the user asked for NotebookLM grounding.
+- Managing Google login credentials, cookies, local storage, or browser profiles.
 
 ## Control Model
 
@@ -182,6 +194,9 @@ If multiple notebooks plausibly match, ask a short clarification question.
 9. If the answer is incomplete, ask targeted follow-up questions in the same notebook.
 10. Return a synthesized response to the user grounded in NotebookLM's answer.
 
+For complex or repeated workflows, read `references/usage_patterns.md` for
+example prompts and library-selection patterns.
+
 ## Response Rules
 
 - Prioritize NotebookLM-grounded content from user sources.
@@ -193,6 +208,33 @@ If multiple notebooks plausibly match, ask a short clarification question.
 - For operational reports, distinguish **Chrome plugin validated** from
   **Computer Use fallback validated**. Do not claim the Chrome plugin worked
   unless the Chrome plugin/browser-client path was actually used.
+
+Use this response shape when citations are available:
+
+```text
+Notebook: <title>
+Sources cited: <source names>
+
+Answer:
+- <claim> [citation markers]
+- <claim> [citation markers]
+
+Notes:
+- Control path used: <Chrome plugin | Computer Use fallback>
+- Limitation: <only if NotebookLM/source coverage was incomplete>
+```
+
+If the user only asks for the answer, keep the operational path in one short
+sentence or omit it unless it matters for debugging.
+
+## Library Safety
+
+- Keep `data/library.json` valid JSON.
+- Do not invent notebook descriptions, topics, or use cases.
+- Prefer short kebab-case IDs such as `symptomai-paper`.
+- If multiple notebooks match a topic, ask a short clarification question.
+- If `active_notebook_id` points to a missing notebook, report the configuration
+  problem before querying.
 
 ## Troubleshooting
 
