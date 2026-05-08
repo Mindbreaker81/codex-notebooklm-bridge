@@ -2,6 +2,16 @@
 
 All notable changes to the NotebookLM Codex skill are tracked here.
 
+## 0.4.0 - 2026-05-08
+
+- Added an explicit DOM vs UI/accessibility extraction strategy.
+- Preferred DOM/Playwright for exact URLs, titles, source lists, answer text,
+  citations, and truncated accessibility content.
+- Updated notebook registration and empty-library flows to try scoped DOM
+  extraction before asking the user for data already visible in NotebookLM.
+- Clarified DOM fallback rules: use UI/accessibility or screenshots when DOM is
+  incomplete, and never invent metadata.
+
 ## 0.3.0 - 2026-05-08
 
 - Made empty-library handling proactive: `list my notebooks` no longer stops at

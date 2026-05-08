@@ -1,6 +1,6 @@
 # Codex NotebookLM Bridge Skill
 
-Version: `0.3.0`
+Version: `0.4.0`
 
 Skill local para consultar Google NotebookLM desde Codex usando la sesion
 autenticada de Chrome del usuario. El objetivo es obtener respuestas grounded en
@@ -13,11 +13,12 @@ interfaz.
 - Consultar notebooks autenticados desde Chrome.
 - Enviar preguntas al chat de NotebookLM.
 - Esperar a que NotebookLM termine de generar la respuesta.
-- Extraer titulo, fuentes, respuesta y citas numeradas.
+- Extraer titulo, URL, fuentes, respuesta y citas numeradas.
 - Registrar notebooks en `.agents/skills/notebooklm/data/library.json`.
 - Seleccionar notebooks por tema o por notebook activo.
 - Iniciar registro o reparacion cuando la biblioteca esta vacia, no hay match
   por tema o el notebook activo es invalido.
+- Elegir DOM o accesibilidad segun el tipo de extraccion necesaria.
 - Diagnosticar si se uso Chrome plugin o Computer Use fallback.
 
 ## Que no hace
@@ -169,6 +170,22 @@ No browser control available
 
 En ese caso la skill no puede operar NotebookLM desde este runtime.
 
+## DOM vs accesibilidad
+
+La skill usa UI/accesibilidad para navegar, hacer clicks, confirmar carga,
+detectar login/errores visibles y comprobar estados de NotebookLM.
+
+Usa DOM/Playwright cuando necesita datos exactos o estructurados: URLs
+completas, atributos `href`, titulos completos, listas largas de notebooks,
+fuentes visibles, texto final de respuestas y citas. Si la accesibilidad
+muestra texto truncado o una lista ambigua, Codex debe intentar DOM antes de
+copiar a mano, pedir el mismo dato al usuario o escribir `library.json`.
+
+Si DOM no expone el dato de forma fiable, la skill vuelve a UI/accesibilidad o
+screenshot y pide una confirmacion corta cuando el valor afecte metadata
+guardada. DOM no autoriza inventar metadata: solo captura lo que NotebookLM o
+el usuario respaldan.
+
 ## Uso basico
 
 ### Consultar un notebook por URL
@@ -190,7 +207,9 @@ https://notebooklm.google.com/notebook/<id>
 
 Codex debe abrir el notebook, preguntarle a NotebookLM de que trata y guardar
 metadata grounded en `data/library.json`. No debe inventar topics ni
-descripciones si NotebookLM no los respalda.
+descripciones si NotebookLM no los respalda. Para registrar debe preferir DOM
+cuando este disponible para capturar URL canonica, titulo completo y fuentes
+visibles antes de guardar.
 
 ### Consultar por tema
 
@@ -364,6 +383,8 @@ Detalles reproducibles:
 - Cambios en la interfaz de NotebookLM pueden requerir ajustar la skill.
 - Chats largos pueden hacer lentos los snapshots DOM completos; la skill prefiere
   extraccion acotada o pestanas frescas.
+- DOM puede no exponer todos los datos utiles; en ese caso se usa
+  UI/accesibilidad y confirmacion del usuario para valores que se guardaran.
 - La calidad depende de las fuentes subidas al notebook.
 - Si NotebookLM no contiene una respuesta tras 1-2 follow-ups concretos, Codex
   debe reportarlo en vez de completar con conocimiento externo.

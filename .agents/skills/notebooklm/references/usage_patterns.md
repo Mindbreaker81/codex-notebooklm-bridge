@@ -54,9 +54,10 @@ Agrega este notebook a mi biblioteca: https://notebooklm.google.com/notebook/ABC
 Flow:
 
 1. Request or use NotebookLM URL.
-2. Ask notebook to summarize its own contents/topics.
-3. Save metadata in library.
-4. Optionally set as active notebook.
+2. Prefer DOM extraction for canonical URL, full title, and visible source list.
+3. Ask notebook to summarize its own contents/topics.
+4. Save metadata in library.
+5. Optionally set as active notebook.
 
 NotebookLM prompt:
 
@@ -92,7 +93,9 @@ Flow:
 2. If no notebooks are registered, do not stop at `No notebooks registered.`
 3. If the prompt includes a NotebookLM URL, open it and register that notebook.
 4. Otherwise open `https://notebooklm.google.com` when browser control is
-   available and ask the user to choose or open a notebook to register.
+   available. Try scoped DOM extraction for visible notebook titles and links.
+   If DOM does not expose a reliable list, ask the user to choose or open a
+   notebook to register.
 5. If browser control is unavailable, ask for a NotebookLM URL.
 
 User with URL:
@@ -215,3 +218,43 @@ Flow:
    - `Control path used: Chrome plugin`, or
    - `Control path used: Computer Use fallback`, or
    - `No browser control available`.
+
+## 10) Long or truncated notebook list
+
+User:
+
+```text
+Use $notebooklm to list my notebooks.
+```
+
+Flow:
+
+1. If `data/library.json` is empty and NotebookLM home opens, inspect the UI.
+2. If accessibility truncates titles or URLs, switch to scoped DOM extraction
+   for notebook cards/anchors before writing or reporting entries.
+3. If DOM exposes reliable titles and `href` values, show candidates and ask
+   which notebook to register.
+4. If DOM does not expose reliable notebook data, ask the user to open a
+   notebook or provide its URL.
+
+Fail:
+
+- Copying truncated URLs or titles from accessibility into `library.json`.
+
+## 11) Register with DOM-backed metadata
+
+User:
+
+```text
+Use $notebooklm to add the notebook currently open in Chrome.
+```
+
+Flow:
+
+1. Confirm the visible page is a NotebookLM notebook.
+2. Use DOM/Playwright for the canonical URL, full title, and visible sources
+   when available.
+3. Ask NotebookLM for grounded overview/topics.
+4. Save only metadata supported by DOM, NotebookLM's answer, visible UI, or user
+   context.
+5. If a value is uncertain, ask a short confirmation before saving.

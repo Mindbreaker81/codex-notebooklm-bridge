@@ -120,6 +120,25 @@ If a NotebookLM chat has a long history, full DOM snapshots may become slow or
 time out. Prefer scoped DOM filtering, visible DOM, or a fresh notebook tab
 rather than repeatedly dumping the whole page.
 
+## Extraction Strategy
+
+Choose the extraction channel by task:
+
+- Use UI/accessibility for navigation, clicks, focus, visible load state,
+  Google login redirects, NotebookLM errors, and confirming what the user can
+  see.
+- Use DOM/Playwright when exact structured data is needed: `href` values,
+  full titles, notebook lists, visible sources, answer text, citation markers,
+  aria attributes, and any text or URL that accessibility truncates.
+- If accessibility exposes a long list, truncated URL, truncated title, or
+  ambiguous repeated item, try scoped DOM extraction before copying manually,
+  asking the user for the same data, or writing `data/library.json`.
+- If DOM extraction fails, is incomplete, or does not expose the needed data,
+  fall back to UI/accessibility or screenshots and ask a short confirmation
+  question when the value would affect saved metadata.
+- Never invent metadata. DOM is evidence only when NotebookLM actually exposes
+  the value or the user supplied it.
+
 ## Quick Start
 
 For the homepage:
@@ -189,10 +208,13 @@ When the user asks to add a notebook:
    `https://notebooklm.google.com` and ask the user to open or choose the
    notebook to register.
 3. If browser control is unavailable, ask for a NotebookLM URL.
-4. Ask NotebookLM: "What is the content of this notebook? What topics are covered? Give a brief overview."
-5. Use the answer, visible title, source list, and user context to fill metadata.
-6. Never invent topics or descriptions when unsure.
-7. Update `data/library.json` and keep it valid JSON.
+4. Prefer DOM extraction for the canonical notebook URL, full title, and visible
+   source list. If DOM is unavailable or incomplete, use visible UI/accessibility
+   and ask for confirmation before saving uncertain values.
+5. Ask NotebookLM: "What is the content of this notebook? What topics are covered? Give a brief overview."
+6. Use the answer, extracted title, source list, and user context to fill metadata.
+7. Never invent topics or descriptions when unsure.
+8. Update `data/library.json` and keep it valid JSON.
 
 ### List Notebook Workflow
 
@@ -206,7 +228,9 @@ When the user asks to list notebooks:
    `No notebooks registered.`, then take the next useful registration step:
    - If the user provided a NotebookLM URL, run the Add Notebook Workflow.
    - If browser control is available, open `https://notebooklm.google.com` and
-     ask the user to open or choose a notebook to register.
+     try scoped DOM extraction for visible notebook titles and links. If DOM
+     does not expose a reliable list, ask the user to open or choose a notebook
+     to register.
    - If browser control is unavailable, ask for a NotebookLM URL.
 4. Do not treat `No notebooks registered.` from `scripts/library.py list` as a
    final answer unless the user explicitly asked for raw CLI output only.
@@ -250,12 +274,15 @@ Do not query NotebookLM while the library selection is invalid or ambiguous.
    - `Reading through pages...`
    - `Refining the Response...`
 7. Read the final answer only after the page indicates the response is ready.
-8. Preserve citation markers returned by NotebookLM, typically numbered markers
+8. Prefer DOM extraction for the final answer text, citation markers, cited
+   source names, and links when available. Use UI/accessibility when DOM is
+   unavailable or to verify visible status/errors.
+9. Preserve citation markers returned by NotebookLM, typically numbered markers
    linked to source files such as `1: source.pdf`.
-9. If the answer is empty, weak, or lacks citations, ask 1-2 targeted follow-up
+10. If the answer is empty, weak, or lacks citations, ask 1-2 targeted follow-up
    questions in the same notebook before giving up. Stop early if NotebookLM
    clearly says the sources do not contain the answer.
-10. Return a synthesized response to the user grounded in NotebookLM's answer.
+11. Return a synthesized response to the user grounded in NotebookLM's answer.
 
 For complex or repeated workflows, read `references/usage_patterns.md` for
 example prompts and library-selection patterns.

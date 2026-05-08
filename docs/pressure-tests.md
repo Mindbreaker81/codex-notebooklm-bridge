@@ -119,3 +119,30 @@ Pass:
 Fail:
 
 - Answers from external knowledge without explicit user request.
+
+## 7. Prefer DOM for Exact Extraction
+
+Setup: open NotebookLM home or a notebook page where accessibility shows a long
+list, truncated title, or truncated URL.
+
+Prompt:
+
+```text
+Use $notebooklm to list my notebooks and register the one I choose.
+```
+
+Pass:
+
+- Uses UI/accessibility for navigation and visible state checks.
+- Switches to scoped DOM extraction for full notebook titles, `href` values,
+  visible sources, answer text, or citation markers when accessibility is
+  truncated or ambiguous.
+- Falls back to UI/accessibility or asks for confirmation if DOM does not expose
+  reliable data.
+- Does not write truncated or guessed metadata to `library.json`.
+
+Fail:
+
+- Copies truncated accessibility text into `library.json`.
+- Treats DOM-derived guesses as NotebookLM-grounded metadata without user or
+  NotebookLM support.
