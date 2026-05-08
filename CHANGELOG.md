@@ -31,5 +31,5 @@ All notable changes to the NotebookLM Codex skill are tracked here.
 - Documented NotebookLM querying through authenticated Chrome.
 - Added local `data/library.json` notebook registry.
 - Added usage pattern reference docs.
-- Validated Chrome plugin flow against the Example Research Notebook test notebook.
+- Validated Chrome plugin flow against a private NotebookLM test notebook.
 - Validated Computer Use as a separate fallback flow.

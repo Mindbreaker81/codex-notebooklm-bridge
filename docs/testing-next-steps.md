@@ -179,7 +179,7 @@ Pass condition:
 
 Current result:
 
-- Passed manually against the Example Research Notebook notebook.
+- Passed manually against a private NotebookLM test notebook.
 - Revalidation steps are documented in `docs/validated-flows.md`.
 
 Blocking failure:
@@ -223,13 +223,13 @@ Current result:
 - Notebook title extracted:
 
   ```text
-  Example Research Notebook
+  <Notebook title>
   ```
 
 - Source cited:
 
   ```text
-  example-source.pdf
+  <source filename>
   ```
 
 - The test submitted multiple questions, waited for NotebookLM's ready state,

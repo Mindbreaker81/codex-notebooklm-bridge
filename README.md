@@ -263,7 +263,7 @@ Actualizar:
 ```bash
 python .agents/skills/notebooklm/scripts/library.py update example-research-notebook \
   --description "Updated description." \
-  --topic wearables
+  --topic updated-topic
 ```
 
 Marcar activo:
@@ -293,8 +293,8 @@ Notebook: Example Research Notebook
 Sources cited: example-source.pdf
 
 Answer:
-- Example Research Notebook was deployed through Fitbit for everyday symptom assessment. [1, 2]
-- The study compared Example Research Notebook's differential diagnoses against clinicians. [3, 4]
+- The notebook describes the main research context. [1, 2]
+- It compares the example method against baseline approaches. [3, 4]
 
 Control path used: Chrome plugin
 ```
@@ -336,7 +336,8 @@ git diff --check
 
 ## Estado validado
 
-Probado con:
+Validado con un notebook de prueba privado. Este repositorio no publica IDs de
+notebooks reales; para revalidar, usa un notebook propio:
 
 ```text
 https://notebooklm.google.com/notebook/<id>
@@ -345,8 +346,8 @@ https://notebooklm.google.com/notebook/<id>
 Resultado validado:
 
 - Notebook cargado autenticado en Chrome.
-- Titulo extraido: `Example Research Notebook`.
-- Fuente citada: `example-source.pdf`.
+- Titulo extraido desde la interfaz de NotebookLM.
+- Fuente visible o citada por NotebookLM.
 - Preguntas enviadas desde Codex.
 - Respuestas y citas extraidas desde NotebookLM.
 - Ruta plugin Chrome validada mediante Chrome skill + `browser-client`.

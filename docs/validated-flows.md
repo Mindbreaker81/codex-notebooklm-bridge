@@ -6,12 +6,15 @@ preserve.
 
 ## Test Notebook
 
+Use a private NotebookLM notebook with uploaded sources. Do not commit real
+NotebookLM IDs to this repository.
+
 ```text
 https://notebooklm.google.com/notebook/<id>
 ```
 
-- Notebook title: `Example Research Notebook`
-- Visible source: `example-source.pdf`
+- Notebook title: visible in the NotebookLM UI.
+- Visible source: at least one uploaded source file.
 - Test question: `What are the main topics covered by this notebook? Include citations when available.`
 
 ## Chrome Plugin Flow
@@ -33,7 +36,7 @@ Observed flow:
 4. Codex opened or claimed the NotebookLM tab.
 5. Codex submitted questions through NotebookLM chat.
 6. Codex waited for the ready state, observed as `Respuesta lista.`
-7. Codex extracted responses and numbered citations from `example-source.pdf`.
+7. Codex extracted responses and numbered citations from a visible source.
 
 Important nuance: this may not appear as a visible `mcp__chrome__...` namespace.
 It still counts as Chrome plugin validation if the browser is controlled through
@@ -59,7 +62,7 @@ Observed flow:
    - `Empieza a escribir...`
 5. Codex typed the test question and clicked `Enviar`.
 6. Codex waited until NotebookLM finished streaming.
-7. Codex read the answer and numbered citations from `example-source.pdf`.
+7. Codex read the answer and numbered citations from a visible source.
 
 Computer Use fallback success does not validate the Chrome plugin path. Reports
 must keep those labels separate.
@@ -80,7 +83,7 @@ Pass criteria:
 
 - Notebook opens authenticated.
 - Notebook title is visible or extractable.
-- `example-source.pdf` is visible or cited.
+- At least one uploaded source is visible or cited.
 - The question is submitted to NotebookLM.
 - The answer is read only after generation completes.
 - Citation markers are preserved.

@@ -34,7 +34,7 @@ def test_add_list_set_active_update_and_validate(tmp_path):
         "--name",
         "Example Research Notebook",
         "--url",
-        "https://notebooklm.google.com/notebook/<id>",
+        "https://notebooklm.google.com/notebook/example-notebook",
         "--description",
         "Research notebook about the example topic.",
         "--topic",

@@ -318,7 +318,9 @@ sentence or omit it unless it matters for debugging.
 
 ## Validated Behavior
 
-Both control paths have been validated against this real NotebookLM notebook:
+Both control paths have been validated against a private NotebookLM test
+notebook. Do not publish real NotebookLM IDs in this repository; use a
+placeholder in docs and examples:
 
 ```text
 https://notebooklm.google.com/notebook/<id>
@@ -331,13 +333,13 @@ Validated Chrome plugin behavior:
   `browser-client` backend in the Node REPL.
 - Codex listed open Chrome tabs, claimed/opened the NotebookLM tab, submitted
   questions, waited for `Respuesta lista.`, and extracted answers with numbered
-  citations from `example-source.pdf`.
+  citations from a visible NotebookLM source.
 
 Validated computer-use fallback behavior:
 
 - Codex opened the notebook through Chrome UI control, submitted a question
   through the chat input, waited for NotebookLM to finish, and read an answer
-  with numbered citations from `example-source.pdf`.
+  with numbered citations from a visible NotebookLM source.
 - Reproducible fallback steps are documented in `docs/validated-flows.md`.
 
 The Codex Chrome extension was also verified as installed and connected in
