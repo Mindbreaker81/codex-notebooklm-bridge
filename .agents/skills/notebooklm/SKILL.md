@@ -386,3 +386,7 @@ Chrome, showing `Connected` and version `v1.1.4`.
 └── references/
     └── usage_patterns.md
 ```
+
+Codex discovers this skill from the workspace at `.agents/skills/notebooklm`,
+or globally at `~/.codex/skills/notebooklm` when installed there. See the
+README for installation options.
