@@ -183,6 +183,43 @@ def test_set_active_clear_flag(tmp_path):
     assert read_library(tmp_path)["active_notebook_id"] is None
 
 
+def test_set_active_clear_conflicts_with_id(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "conflict",
+        "--name",
+        "Conflict",
+        "--url",
+        "https://notebooklm.google.com/notebook/conf",
+        "--description",
+        "Conflict notebook.",
+    )
+    run_library(tmp_path, "set-active", "conflict")
+    result = run_library(tmp_path, "set-active", "--clear", "conflict")
+    assert result.returncode != 0
+    assert "cannot pass both --clear and a notebook id" in result.stderr
+    assert read_library(tmp_path)["active_notebook_id"] == "conflict"
+
+
+def test_add_rejects_url_with_extra_path_segments(tmp_path):
+    result = run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "extra-path",
+        "--name",
+        "Extra Path",
+        "--url",
+        "https://notebooklm.google.com/notebook/abc/extra",
+        "--description",
+        "Extra path.",
+    )
+    assert result.returncode != 0
+    assert "NotebookLM URL" in result.stderr
+
+
 def test_set_active_none_alias_still_works(tmp_path):
     run_library(
         tmp_path,

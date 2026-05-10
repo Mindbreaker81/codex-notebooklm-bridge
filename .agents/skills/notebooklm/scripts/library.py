@@ -14,7 +14,7 @@ from typing import Any
 
 DEFAULT_LIBRARY = Path(__file__).resolve().parents[1] / "data" / "library.json"
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-NOTEBOOK_URL_RE = re.compile(r"^https://notebooklm\.google\.com/notebook/[^/?#]+")
+NOTEBOOK_URL_RE = re.compile(r"^https://notebooklm\.google\.com/notebook/[^/?#]+(?:[?#].*)?$")
 REQUIRED_FIELDS = ("id", "name", "url", "description", "topics", "use_cases")
 
 
@@ -22,10 +22,9 @@ def canonicalize_notebook_url(value: Any) -> str:
     if not isinstance(value, str):
         raise LibraryError("url must be a string")
     stripped = value.strip()
-    match = NOTEBOOK_URL_RE.match(stripped)
-    if not match:
+    if not NOTEBOOK_URL_RE.match(stripped):
         raise LibraryError("url must be a NotebookLM URL")
-    return match.group(0)
+    return re.sub(r"[?#].*$", "", stripped)
 
 
 class LibraryError(Exception):
