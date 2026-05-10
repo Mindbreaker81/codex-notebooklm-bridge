@@ -1,6 +1,6 @@
 # Codex NotebookLM Bridge Skill
 
-Version: `0.4.0`
+Version: `0.5.0`
 
 Skill local para consultar Google NotebookLM desde Codex usando la sesion
 autenticada de Chrome del usuario. El objetivo es obtener respuestas grounded en
@@ -289,8 +289,14 @@ Marcar activo:
 
 ```bash
 python .agents/skills/notebooklm/scripts/library.py set-active example-research-notebook
+python .agents/skills/notebooklm/scripts/library.py set-active --clear
+# legacy alias, todavia funciona:
 python .agents/skills/notebooklm/scripts/library.py set-active none
 ```
+
+Las URLs se canonicalizan al guardar: cualquier query string o fragmento
+(`?pli=1`, `&hl=es`, `#section`) se descarta y solo se conserva
+`https://notebooklm.google.com/notebook/<id>`.
 
 El script solo edita `library.json`. No abre Chrome ni consulta NotebookLM.
 
@@ -344,7 +350,8 @@ python -m json.tool .agents/skills/notebooklm/data/library.json
 Ejecutar tests del script:
 
 ```bash
-python -m pytest tests/test_library_script.py
+python -m pip install -e .[dev]   # opcional, instala pytest
+python -m pytest tests/
 ```
 
 Validar whitespace antes de commit:
@@ -352,6 +359,21 @@ Validar whitespace antes de commit:
 ```bash
 git diff --check
 ```
+
+Comprobar que no se cuelan IDs reales de NotebookLM en archivos versionados:
+
+```bash
+scripts/check-notebook-ids.sh
+```
+
+Para activarlo como hook local:
+
+```bash
+ln -sf ../../scripts/check-notebook-ids.sh .git/hooks/pre-commit
+```
+
+CI ejecuta `pytest` y `library.py validate` en cada push a `main` y en cada
+PR (`.github/workflows/tests.yml`).
 
 ## Estado validado
 
@@ -387,7 +409,11 @@ Detalles reproducibles:
   UI/accesibilidad y confirmacion del usuario para valores que se guardaran.
 - La calidad depende de las fuentes subidas al notebook.
 - Si NotebookLM no contiene una respuesta tras 1-2 follow-ups concretos, Codex
-  debe reportarlo en vez de completar con conocimiento externo.
+  debe reportarlo en vez de completar con conocimiento externo. El usuario
+  puede pedir mas profundidad explicitamente para extender ese presupuesto.
+- La skill detecta los inputs de NotebookLM tanto en espanol (`Cuadro de
+  consulta`, `Empieza a escribir...`, `Enviar`, `Respuesta lista.`) como en
+  ingles (`Query box`, `Start typing...`, `Send`, `Response ready.`).
 
 ## Desarrollo
 
