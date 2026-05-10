@@ -171,6 +171,8 @@ closest relevant passages.
 
 3. If NotebookLM still cannot support the answer, report insufficient source
    coverage instead of filling gaps externally.
+4. The default follow-up budget is 1-2. Extend it only when the user explicitly
+   asks for deeper digging.
 
 ## 8) Comparative synthesis
 
