@@ -220,6 +220,23 @@ def test_set_active_clear_conflicts_with_id(tmp_path):
     assert read_library(tmp_path)["active_notebook_id"] == "conflict"
 
 
+def test_add_rejects_url_with_internal_whitespace(tmp_path):
+    result = run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "ws-id",
+        "--name",
+        "WS",
+        "--url",
+        "https://notebooklm.google.com/notebook/abc trailing",
+        "--description",
+        "Whitespace.",
+    )
+    assert result.returncode != 0
+    assert "NotebookLM URL" in result.stderr
+
+
 def test_add_rejects_url_with_extra_path_segments(tmp_path):
     result = run_library(
         tmp_path,

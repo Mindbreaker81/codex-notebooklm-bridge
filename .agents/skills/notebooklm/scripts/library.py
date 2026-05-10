@@ -14,7 +14,7 @@ from typing import Any
 
 DEFAULT_LIBRARY = Path(__file__).resolve().parents[1] / "data" / "library.json"
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-NOTEBOOK_URL_RE = re.compile(r"^https://notebooklm\.google\.com/notebook/[^/?#]+(?:[?#].*)?$")
+NOTEBOOK_URL_RE = re.compile(r"^https://notebooklm\.google\.com/notebook/[A-Za-z0-9_-]+(?:[?#].*)?$")
 REQUIRED_FIELDS = ("id", "name", "url", "description", "topics", "use_cases")
 RESERVED_IDS = frozenset({"none"})
 
