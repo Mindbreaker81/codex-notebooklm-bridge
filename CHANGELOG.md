@@ -2,6 +2,24 @@
 
 All notable changes to the NotebookLM Codex skill are tracked here.
 
+## 0.5.0 - 2026-05-10
+
+- Removed the stray `._SKILL.md` AppleDouble metadata file from the skill tree.
+- Normalized NotebookLM URLs on `add`/`update` to strip query strings and
+  fragments so `library.json` stores the canonical notebook URL.
+- Added `set-active --clear` as the explicit way to clear the active notebook;
+  the `none` positional argument is kept as a deprecated alias.
+- Added English UI aliases (`Query box`, `Start typing...`, `Send`,
+  `Response ready.`) alongside the Spanish strings in `SKILL.md`.
+- Documented the follow-up policy: default 1-2 follow-ups, allow more only when
+  the user explicitly asks for deeper digging.
+- Added a `version` field to `agents/openai.yaml`.
+- Added a GitHub Actions workflow that runs `pytest` for the library script.
+- Added a minimal `pyproject.toml` configuring pytest's `testpaths`. Pytest
+  itself is installed separately (`pip install pytest`).
+- Added a pre-commit hook that flags suspiciously long real-looking notebook
+  IDs in tracked files.
+
 ## 0.4.0 - 2026-05-08
 
 - Added an explicit DOM vs UI/accessibility extraction strategy.

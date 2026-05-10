@@ -1,0 +1,6 @@
+# This project is not a Python package; it is a Codex skill plus a maintenance
+# script. We keep this file only to configure pytest. To run the test suite,
+# install pytest directly: `python -m pip install pytest`.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -94,6 +94,185 @@ def test_validate_rejects_duplicate_ids(tmp_path):
     assert "duplicate notebook id" in result.stderr
 
 
+def test_add_canonicalizes_url(tmp_path):
+    result = run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "canon-url",
+        "--name",
+        "Canon",
+        "--url",
+        "https://notebooklm.google.com/notebook/abc123?pli=1&hl=es#section",
+        "--description",
+        "Canonical URL.",
+    )
+    assert result.returncode == 0, result.stderr
+    notebook = read_library(tmp_path)["notebooks"][0]
+    assert notebook["url"] == "https://notebooklm.google.com/notebook/abc123"
+
+
+def test_update_canonicalizes_url(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "canon-update",
+        "--name",
+        "Canon Update",
+        "--url",
+        "https://notebooklm.google.com/notebook/initial",
+        "--description",
+        "Initial.",
+    )
+    result = run_library(
+        tmp_path,
+        "update",
+        "canon-update",
+        "--url",
+        "https://notebooklm.google.com/notebook/updated?pli=1#frag",
+    )
+    assert result.returncode == 0, result.stderr
+    notebook = read_library(tmp_path)["notebooks"][0]
+    assert notebook["url"] == "https://notebooklm.google.com/notebook/updated"
+
+
+def test_update_url_error_includes_notebook_id(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "ctx",
+        "--name",
+        "Ctx",
+        "--url",
+        "https://notebooklm.google.com/notebook/ok",
+        "--description",
+        "Ok.",
+    )
+    result = run_library(
+        tmp_path,
+        "update",
+        "ctx",
+        "--url",
+        "https://example.com/notebook/abc",
+    )
+    assert result.returncode != 0
+    assert "ctx:" in result.stderr
+    assert "NotebookLM URL" in result.stderr
+
+
+def test_set_active_clear_flag(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "clearable",
+        "--name",
+        "Clearable",
+        "--url",
+        "https://notebooklm.google.com/notebook/clr",
+        "--description",
+        "Clearable notebook.",
+    )
+    run_library(tmp_path, "set-active", "clearable")
+    assert read_library(tmp_path)["active_notebook_id"] == "clearable"
+
+    cleared = run_library(tmp_path, "set-active", "--clear")
+    assert cleared.returncode == 0, cleared.stderr
+    assert read_library(tmp_path)["active_notebook_id"] is None
+
+
+def test_add_rejects_reserved_id_none(tmp_path):
+    result = run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "none",
+        "--name",
+        "None",
+        "--url",
+        "https://notebooklm.google.com/notebook/n",
+        "--description",
+        "Reserved.",
+    )
+    assert result.returncode != 0
+    assert "reserved notebook id" in result.stderr
+
+
+def test_set_active_clear_conflicts_with_id(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "conflict",
+        "--name",
+        "Conflict",
+        "--url",
+        "https://notebooklm.google.com/notebook/conf",
+        "--description",
+        "Conflict notebook.",
+    )
+    run_library(tmp_path, "set-active", "conflict")
+    result = run_library(tmp_path, "set-active", "--clear", "conflict")
+    assert result.returncode != 0
+    assert "cannot pass both --clear and a notebook id" in result.stderr
+    assert read_library(tmp_path)["active_notebook_id"] == "conflict"
+
+
+def test_add_rejects_url_with_internal_whitespace(tmp_path):
+    result = run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "ws-id",
+        "--name",
+        "WS",
+        "--url",
+        "https://notebooklm.google.com/notebook/abc trailing",
+        "--description",
+        "Whitespace.",
+    )
+    assert result.returncode != 0
+    assert "NotebookLM URL" in result.stderr
+
+
+def test_add_rejects_url_with_extra_path_segments(tmp_path):
+    result = run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "extra-path",
+        "--name",
+        "Extra Path",
+        "--url",
+        "https://notebooklm.google.com/notebook/abc/extra",
+        "--description",
+        "Extra path.",
+    )
+    assert result.returncode != 0
+    assert "NotebookLM URL" in result.stderr
+
+
+def test_set_active_none_alias_still_works(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "legacy",
+        "--name",
+        "Legacy",
+        "--url",
+        "https://notebooklm.google.com/notebook/leg",
+        "--description",
+        "Legacy notebook.",
+    )
+    run_library(tmp_path, "set-active", "legacy")
+    cleared = run_library(tmp_path, "set-active", "none")
+    assert cleared.returncode == 0, cleared.stderr
+    assert read_library(tmp_path)["active_notebook_id"] is None
+
+
 def test_add_rejects_non_notebooklm_url(tmp_path):
     result = run_library(
         tmp_path,

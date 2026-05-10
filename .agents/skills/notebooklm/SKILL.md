@@ -96,9 +96,9 @@ Observed working computer-use fallback flow:
 2. Inspect the Chrome window/accessibility tree.
 3. Confirm NotebookLM is authenticated and notebook content is visible.
 4. Locate the chat input with description/placeholder like `Cuadro de consulta`
-   or `Empieza a escribir...`.
-5. Set/type the question, click/send with the `Enviar` button, then wait until
-   NotebookLM finishes streaming and reports the response as ready.
+   / `Query box` or `Empieza a escribir...` / `Start typing...`.
+5. Set/type the question, click/send with the `Enviar` / `Send` button, then
+   wait until NotebookLM finishes streaming and reports the response as ready.
 6. Read the generated answer and citation markers from the page.
 
 The Chrome extension popup should show `Connected`. If it is disconnected,
@@ -112,9 +112,9 @@ When the Chrome plugin is available through `browser-client`, a working flow is:
 2. Confirm communication with a lightweight call such as listing open tabs.
 3. Open or claim the NotebookLM tab.
 4. Use Playwright/DOM APIs exposed by the Chrome plugin to locate the
-   `Cuadro de consulta` textbox and submit the question.
+   `Cuadro de consulta` / `Query box` textbox and submit the question.
 5. Read the final NotebookLM response only after the page reports
-   `Respuesta lista.` or an equivalent ready state.
+   `Respuesta lista.` / `Response ready.` or an equivalent ready state.
 
 If a NotebookLM chat has a long history, full DOM snapshots may become slow or
 time out. Prefer scoped DOM filtering, visible DOM, or a fresh notebook tab
@@ -265,10 +265,10 @@ Do not query NotebookLM while the library selection is invalid or ambiguous.
 1. Open the selected notebook URL in Chrome.
 2. Wait until the NotebookLM interface is fully loaded.
 3. Confirm the desired source set is selected when visible.
-4. Locate the chat input. In Spanish UI it appears as:
-   - description: `Cuadro de consulta`
-   - placeholder: `Empieza a escribir...`
-5. Type or set a self-contained question and submit with `Enviar`.
+4. Locate the chat input. Strings depend on the Google account language:
+   - Spanish: description `Cuadro de consulta`, placeholder `Empieza a escribir...`
+   - English: description `Query box`, placeholder `Start typing...`
+5. Type or set a self-contained question and submit with `Enviar` / `Send`.
 6. Wait while NotebookLM streams status messages such as:
    - `Assessing relevance...`
    - `Reading through pages...`
@@ -281,7 +281,10 @@ Do not query NotebookLM while the library selection is invalid or ambiguous.
    linked to source files such as `1: source.pdf`.
 10. If the answer is empty, weak, or lacks citations, ask 1-2 targeted follow-up
    questions in the same notebook before giving up. Stop early if NotebookLM
-   clearly says the sources do not contain the answer.
+   clearly says the sources do not contain the answer. If the user explicitly
+   asks for deeper digging (e.g. "keep asking until you find it", "exhaust the
+   sources"), you may extend beyond 1-2 follow-ups; otherwise stay within the
+   default budget.
 11. Return a synthesized response to the user grounded in NotebookLM's answer.
 
 For complex or repeated workflows, read `references/usage_patterns.md` for
@@ -386,3 +389,7 @@ Chrome, showing `Connected` and version `v1.1.4`.
 └── references/
     └── usage_patterns.md
 ```
+
+Codex discovers this skill from the workspace at `.agents/skills/notebooklm`,
+or globally at `~/.codex/skills/notebooklm` when installed there. See the
+README for installation options.
