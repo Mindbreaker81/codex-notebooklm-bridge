@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Flag suspiciously long real-looking NotebookLM IDs in tracked files.
-# Real IDs are typically 32+ chars of [A-Za-z0-9_-]. The placeholder we use
+# Real IDs are typically ~43 URL-safe base64 chars; we use a 20-char threshold
+# to err on the side of catching false positives early. The placeholder we use
 # in docs is the literal "<id>", which is allowed.
 #
 # Usage: scripts/check-notebook-ids.sh [files...]

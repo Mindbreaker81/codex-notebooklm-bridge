@@ -16,6 +16,7 @@ DEFAULT_LIBRARY = Path(__file__).resolve().parents[1] / "data" / "library.json"
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 NOTEBOOK_URL_RE = re.compile(r"^https://notebooklm\.google\.com/notebook/[^/?#]+(?:[?#].*)?$")
 REQUIRED_FIELDS = ("id", "name", "url", "description", "topics", "use_cases")
+RESERVED_IDS = frozenset({"none"})
 
 
 def canonicalize_notebook_url(value: Any) -> str:
@@ -73,6 +74,8 @@ def validate_library(data: Any) -> None:
         notebook_id = notebook["id"]
         if not isinstance(notebook_id, str) or not ID_RE.fullmatch(notebook_id):
             raise LibraryError(f"invalid notebook id: {notebook_id!r}; use kebab-case")
+        if notebook_id in RESERVED_IDS:
+            raise LibraryError(f"reserved notebook id: {notebook_id!r}")
         if notebook_id in seen:
             raise LibraryError(f"duplicate notebook id: {notebook_id}")
         seen.add(notebook_id)

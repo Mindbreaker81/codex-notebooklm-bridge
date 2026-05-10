@@ -15,7 +15,8 @@ All notable changes to the NotebookLM Codex skill are tracked here.
   the user explicitly asks for deeper digging.
 - Added a `version` field to `agents/openai.yaml`.
 - Added a GitHub Actions workflow that runs `pytest` for the library script.
-- Added a minimal `pyproject.toml` declaring the test dependency.
+- Added a minimal `pyproject.toml` configuring pytest's `testpaths`. Pytest
+  itself is installed separately (`pip install pytest`).
 - Added a pre-commit hook that flags suspiciously long real-looking notebook
   IDs in tracked files.
 

@@ -183,6 +183,23 @@ def test_set_active_clear_flag(tmp_path):
     assert read_library(tmp_path)["active_notebook_id"] is None
 
 
+def test_add_rejects_reserved_id_none(tmp_path):
+    result = run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "none",
+        "--name",
+        "None",
+        "--url",
+        "https://notebooklm.google.com/notebook/n",
+        "--description",
+        "Reserved.",
+    )
+    assert result.returncode != 0
+    assert "reserved notebook id" in result.stderr
+
+
 def test_set_active_clear_conflicts_with_id(tmp_path):
     run_library(
         tmp_path,

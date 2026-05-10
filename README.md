@@ -290,7 +290,7 @@ Marcar activo:
 ```bash
 python .agents/skills/notebooklm/scripts/library.py set-active example-research-notebook
 python .agents/skills/notebooklm/scripts/library.py set-active --clear
-# legacy alias, todavia funciona:
+# legacy alias, todavía funciona:
 python .agents/skills/notebooklm/scripts/library.py set-active none
 ```
 
@@ -423,6 +423,6 @@ Antes de publicar cambios:
 python <path-to-skill-creator>/scripts/quick_validate.py .agents/skills/notebooklm
 python .agents/skills/notebooklm/scripts/library.py validate
 python -m json.tool .agents/skills/notebooklm/data/library.json
-python -m pytest tests/test_library_script.py
+python -m pytest tests/
 git diff --check
 ```
