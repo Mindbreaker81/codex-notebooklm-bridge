@@ -350,7 +350,7 @@ python -m json.tool .agents/skills/notebooklm/data/library.json
 Ejecutar tests del script:
 
 ```bash
-python -m pip install -e .[dev]   # opcional, instala pytest
+python -m pip install pytest
 python -m pytest tests/
 ```
 

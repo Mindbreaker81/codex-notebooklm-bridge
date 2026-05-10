@@ -8,8 +8,11 @@
 
 set -euo pipefail
 
+files=()
 if [[ $# -eq 0 ]]; then
-  mapfile -t files < <(git ls-files)
+  while IFS= read -r line; do
+    files+=("$line")
+  done < <(git ls-files)
 else
   files=("$@")
 fi

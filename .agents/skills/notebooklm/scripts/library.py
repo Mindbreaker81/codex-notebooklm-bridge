@@ -165,7 +165,10 @@ def cmd_update(args: argparse.Namespace) -> int:
         if value is not None:
             notebook[field] = value
     if args.url is not None:
-        notebook["url"] = canonicalize_notebook_url(args.url)
+        try:
+            notebook["url"] = canonicalize_notebook_url(args.url)
+        except LibraryError as exc:
+            raise LibraryError(f"{args.id}: {exc}") from exc
     if args.topic is not None:
         notebook["topics"] = dedupe(args.topic)
     if args.use_case is not None:

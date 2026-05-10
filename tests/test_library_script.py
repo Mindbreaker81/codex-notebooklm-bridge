@@ -112,6 +112,56 @@ def test_add_canonicalizes_url(tmp_path):
     assert notebook["url"] == "https://notebooklm.google.com/notebook/abc123"
 
 
+def test_update_canonicalizes_url(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "canon-update",
+        "--name",
+        "Canon Update",
+        "--url",
+        "https://notebooklm.google.com/notebook/initial",
+        "--description",
+        "Initial.",
+    )
+    result = run_library(
+        tmp_path,
+        "update",
+        "canon-update",
+        "--url",
+        "https://notebooklm.google.com/notebook/updated?pli=1#frag",
+    )
+    assert result.returncode == 0, result.stderr
+    notebook = read_library(tmp_path)["notebooks"][0]
+    assert notebook["url"] == "https://notebooklm.google.com/notebook/updated"
+
+
+def test_update_url_error_includes_notebook_id(tmp_path):
+    run_library(
+        tmp_path,
+        "add",
+        "--id",
+        "ctx",
+        "--name",
+        "Ctx",
+        "--url",
+        "https://notebooklm.google.com/notebook/ok",
+        "--description",
+        "Ok.",
+    )
+    result = run_library(
+        tmp_path,
+        "update",
+        "ctx",
+        "--url",
+        "https://example.com/notebook/abc",
+    )
+    assert result.returncode != 0
+    assert "ctx:" in result.stderr
+    assert "NotebookLM URL" in result.stderr
+
+
 def test_set_active_clear_flag(tmp_path):
     run_library(
         tmp_path,
